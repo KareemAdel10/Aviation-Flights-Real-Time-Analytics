@@ -1,0 +1,85 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: kestra
+      POSTGRES_PASSWORD: kestra
+      POSTGRES_DB: kestra
+    ports:
+      - "5432:5432"
+    volumes:
+      - 02-workflow-orchestration_postgres_data3:/var/lib/postgresql/data
+    networks:
+      - kestra_network
+
+  kestra:
+    image: kestra/kestra:latest
+    container_name: kestra
+    environment:
+      KESTRA_CONFIGURATION_STORAGE_TYPE: postgres
+      KESTRA_CONFIGURATION_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kestra
+      KESTRA_CONFIGURATION_DATASOURCE_USERNAME: kestra
+      KESTRA_CONFIGURATION_DATASOURCE_PASSWORD: kestra
+    ports:
+      - "8080:8080"
+    user: root  # Run as root user
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # Mount Docker socket
+      - /tmp:/tmp  # Mount temporary directory
+      - 02-workflow-orchestration_kestra_data:/app/data
+    command: ["server", "local"]  # Start Kestra server in local mode
+    networks:
+      - kestra_network
+
+  nifi:
+    image: apache/nifi:latest
+    container_name: nifi
+    environment:
+      - SINGLE_USER_CREDENTIALS_USERNAME=admin
+      - SINGLE_USER_CREDENTIALS_PASSWORD=ctsBtRBKHRAx69EqUghvvgEvjnaLjFEB
+      - NIFI_WEB_PROXY_HOST=localhost
+    ports:
+      - "8443:8443"
+
+    volumes:
+      - type: volume
+        source: conf
+        target: /opt/nifi/nifi-current/conf
+      - type: volume
+        source: content
+        target: /opt/nifi/nifi-current/content_repository
+      - type: volume
+        source: db
+        target: /opt/nifi/nifi-current/database_repository
+      - type: volume
+        source: flowfile
+        target: /opt/nifi/nifi-current/flowfile_repository
+      - type: volume
+        source: provenance
+        target: /opt/nifi/nifi-current/provenance_repository
+      - type: volume
+        source: logs
+        target: /opt/nifi/nifi-current/logs
+      - type: volume
+        source: data
+        target: /opt/nifi/nifi-current/data
+    networks:
+      - kestra_network
+
+volumes:
+  conf:
+  content:
+  db:
+  flowfile:
+  provenance:
+  logs:
+  data:
+  02-workflow-orchestration_kestra_data:  
+    external: true  
+  02-workflow-orchestration_postgres_data3:
+    external: true
+
+networks:
+  kestra_network:
+    driver: bridge
