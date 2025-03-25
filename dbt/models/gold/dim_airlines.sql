@@ -10,9 +10,9 @@ SELECT
     {% endif %}  
     ROW_NUMBER() OVER(ORDER BY airline_name, iata_code, icao_code) AS airline_id,
     airline_name,
+    icao_code,
     iata_code,
     iata_prefix_accounting,
-    icao_code,
 
     country_iso2,
     country_name,
