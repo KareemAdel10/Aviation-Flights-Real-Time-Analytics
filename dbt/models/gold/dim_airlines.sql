@@ -5,9 +5,10 @@ WITH airlines AS(
         {{ ref('stg_silver__airlines') }}
 )
 SELECT 
-    {% if var('is_test_run', default=true) %}
+    {% if var('is_test_run', default=False) %}
         top 10
     {% endif %}  
+    
     ROW_NUMBER() OVER(ORDER BY airline_name, iata_code, icao_code) AS airline_id,
     airline_name,
     icao_code,

@@ -5,9 +5,10 @@ WITH airplanes AS(
         {{ ref('stg_silver__airplanes') }}
 )
 SELECT 
-    {% if var('is_test_run', default=true) %}
+    {% if var('is_test_run', default=False) %}
         top 10
     {% endif %}  
+    
     ROW_NUMBER() OVER(ORDER BY registration_number) AS airplanes_id,
     registration_number,
     model_name,

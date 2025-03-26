@@ -9,7 +9,7 @@ source as (
 renamed as (
 
     select
-        {% if var('is_test_run', default=true) %}
+        {% if var('is_test_run', default=False) %}
             top 100
         {% endif %}    
         airport_name,

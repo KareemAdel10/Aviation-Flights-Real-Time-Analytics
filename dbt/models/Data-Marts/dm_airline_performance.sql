@@ -22,16 +22,16 @@ airline_details AS (
 )
 
 SELECT 
-    -- fs.airline_icao,
-    -- ad.airline_name,
-    -- ad.fleet_size,
-    -- ad.fleet_average_age,
-    -- ad.country_name,
-    -- fs.total_flights,
-    -- fs.cancelled_flights,
-    -- fs.delayed_flights,
-    -- fs.avg_departure_delay,
-    -- fs.avg_arrival_delay
-    *
+    fs.airline_icao,
+    ad.airline_name,
+    ad.fleet_size,
+    ad.fleet_average_age,
+    ad.country_name,
+    fs.total_flights,
+    fs.cancelled_flights,
+    fs.delayed_flights,
+    fs.avg_departure_delay,
+    fs.avg_arrival_delay
+    
 FROM flight_summary fs
--- JOIN airline_details ad ON fs.airline_icao = ad.icao_code
+JOIN airline_details ad ON fs.airline_icao = ad.icao_code

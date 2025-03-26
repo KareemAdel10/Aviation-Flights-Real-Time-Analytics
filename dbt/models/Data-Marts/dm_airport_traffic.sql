@@ -1,6 +1,6 @@
 WITH departures AS (
     SELECT 
-        departure_icao AS airport_id,
+        departure_icao AS departure_airport_iata,
         COUNT(flight_id) AS total_departures,
         AVG(departure_delay) AS avg_departure_delay
     FROM {{ ref('fact_flights') }}
@@ -9,16 +9,16 @@ WITH departures AS (
 
 arrivals AS (
     SELECT 
-        arrival_icao AS airport_id,
+        arrival_icao AS arrival_airport_iata,
         COUNT(flight_id) AS total_arrivals,
         AVG(arrival_delay) AS avg_arrival_delay
     FROM {{ ref('fact_flights') }}
     GROUP BY arrival_icao
 ),
-
 airport_details AS (
     SELECT 
         airport_id,
+        icao_code,
         airport_name,
         city_iata_code,
         country_name
@@ -27,6 +27,7 @@ airport_details AS (
 
 SELECT 
     ad.airport_id,
+    ad.icao_code,
     ad.airport_name,
     ad.city_iata_code,
     ad.country_name,
@@ -35,5 +36,5 @@ SELECT
     COALESCE(arr.total_arrivals, 0) AS total_arrivals,
     COALESCE(arr.avg_arrival_delay, 0) AS avg_arrival_delay
 FROM airport_details ad
-LEFT JOIN departures dep ON ad.airport_id = dep.airport_id
-LEFT JOIN arrivals arr ON ad.airport_id = arr.airport_id
+ JOIN departures dep ON ad.icao_code = dep.departure_airport_iata
+ JOIN arrivals arr ON ad.icao_code = arr.arrival_airport_iata
