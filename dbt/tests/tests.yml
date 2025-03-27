@@ -2,24 +2,25 @@ version: 2
 
 models:
   - name: fact_flights
-    tests:
-      - dbt_expectations.expect_column_to_have_values_from_set:
-          column_name: flight_status
-          values:
-            [
-              "scheduled",
-              "cancelled",
-              "unknown",
-              "diverted",
-              "landed",
-              "active",
-            ]
-
-      - dbt_expectations.expect_column_to_have_values_from_set:
-          column_name: live_is_ground
-          values: ["True", "False"]
-
     columns:
+      - name: flight_status
+        tests:
+          - accepted_values:
+              values:
+                [
+                  "scheduled",
+                  "cancelled",
+                  "unknown",
+                  "diverted",
+                  "landed",
+                  "active"
+                ]
+
+      - name: live_is_ground
+        tests:
+          - accepted_values:
+              values: ["True", "False"]
+
       - name: flight_id
         tests:
           - unique
@@ -58,42 +59,46 @@ models:
                 where: "aircraft_registration != 'N/A'"
 
   - name: dim_airlines
-    tests:
+    columns:
       - name: airline_id
         tests:
           - unique
           - not_null
 
   - name: dim_airplanes
-    tests:
+    columns:
       - name: airplanes_id
         tests:
           - unique
           - not_null
+          
       - name: registration_number
         tests:
+          - unique
           - not_null
 
   - name: dim_airports
-    tests:
+    columns:
       - name: airport_id
         tests:
           - unique
           - not_null
 
   - name: dim_cities
-    tests:
+    columns:
       - name: city_id
         tests:
           - unique
           - not_null
 
   - name: dim_countries
-    tests:
+    columns:
       - name: country_id
         tests:
           - unique
           - not_null
+
       - name: country_name
         tests:
+          - unique
           - not_null
