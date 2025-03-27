@@ -1,0 +1,99 @@
+version: 2
+
+models:
+  - name: fact_flights
+    tests:
+      - dbt_expectations.expect_column_to_have_values_from_set:
+          column_name: flight_status
+          values:
+            [
+              "scheduled",
+              "cancelled",
+              "unknown",
+              "diverted",
+              "landed",
+              "active",
+            ]
+
+      - dbt_expectations.expect_column_to_have_values_from_set:
+          column_name: live_is_ground
+          values: ["True", "False"]
+
+    columns:
+      - name: flight_id
+        tests:
+          - unique
+          - not_null
+
+      - name: departure_icao
+        tests:
+          - relationships:
+              to: ref('dim_airports')
+              field: icao_code
+              config:
+                where: "departure_icao != 'N/A'"
+
+      - name: arrival_icao
+        tests:
+          - relationships:
+              to: ref('dim_airports')
+              field: icao_code
+              config:
+                where: "arrival_icao != 'N/A'"
+
+      - name: airline_icao
+        tests:
+          - relationships:
+              to: ref('dim_airlines')
+              field: icao_code
+              config:
+                where: "airline_icao != 'N/A'"
+
+      - name: aircraft_registration
+        tests:
+          - relationships:
+              to: ref('dim_airplanes')
+              field: registration_number
+              config:
+                where: "aircraft_registration != 'N/A'"
+
+  - name: dim_airlines
+    tests:
+      - name: airline_id
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_airplanes
+    tests:
+      - name: airplanes_id
+        tests:
+          - unique
+          - not_null
+      - name: registration_number
+        tests:
+          - not_null
+
+  - name: dim_airports
+    tests:
+      - name: airport_id
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_cities
+    tests:
+      - name: city_id
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_countries
+    tests:
+      - name: country_id
+        tests:
+          - unique
+          - not_null
+      - name: country_name
+        tests:
+          - not_null
