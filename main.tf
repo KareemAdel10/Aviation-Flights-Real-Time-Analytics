@@ -73,8 +73,8 @@ resource "azurerm_synapse_workspace" "synapse" {
 resource "azurerm_synapse_firewall_rule" "allow_my_ip" {
   name                 = "allow_my_ip"
   synapse_workspace_id = azurerm_synapse_workspace.synapse.id
-  start_ip_address     = "156.198.78.239"
-  end_ip_address       = "156.198.78.239"
+  start_ip_address     = "156.198.8.239"
+  end_ip_address       = "156.198.8.239"
 }
 
 resource "azurerm_synapse_firewall_rule" "allow_dbt_ip" {
@@ -84,10 +84,18 @@ resource "azurerm_synapse_firewall_rule" "allow_dbt_ip" {
   end_ip_address       = "3.214.191.130"
 }
 
+resource "azurerm_synapse_firewall_rule" "allow_dbt_ip2" {
+  name                 = "allow_dbt_ip2"
+  synapse_workspace_id = azurerm_synapse_workspace.synapse.id
+  start_ip_address     = "52.3.77.232"  
+  end_ip_address       = "52.3.77.232"
+}
+
+
 resource "azurerm_role_assignment" "synapse_storage_access" {
   scope                = azurerm_storage_account.adls.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_synapse_workspace.synapse.identity[0].principal_id
+  principal_id         = "b87928d5-e544-43db-95bb-8ebbd5dc34f7"
 }
 
 resource "azurerm_databricks_workspace" "dbw" {
@@ -97,19 +105,12 @@ resource "azurerm_databricks_workspace" "dbw" {
   sku                 = "standard"
 }
 
-resource "databricks_cluster" "databricks_cluster" {
-  cluster_name                 = "databricks-single-node"
-  spark_version                = "13.3.x-scala2.12"
-  node_type_id                 = "Standard_D3_v2"
-  num_workers                  = 0  # Set to 0 for a single-node cluster
-  autotermination_minutes      = 10
-  enable_elastic_disk          = true
-  enable_local_disk_encryption = true
-}
-
-
-# resource "azurerm_role_assignment" "databricks_storage_access" {
-#   scope                = azurerm_storage_account.adls.id
-#   role_definition_name = "Storage Blob Data Contributor"
-#   principal_id = "6e2a277d-282f-4b79-a3e3-d6d27afc8394"
+# resource "databricks_cluster" "databricks_cluster" {
+#   cluster_name                 = "databricks-single-node"
+#   spark_version                = "13.3.x-scala2.12"
+#   node_type_id                 = "Standard_D3_v2"
+#   num_workers                  = 0 
+#   autotermination_minutes      = 10
+#   enable_elastic_disk          = true
+#   enable_local_disk_encryption = true
 # }

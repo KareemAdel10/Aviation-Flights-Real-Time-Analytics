@@ -4,3 +4,5 @@
 *.tfstate.backup
 *.tfvars
 *.lock.hcl
+to-do-list.txt
+error.txt

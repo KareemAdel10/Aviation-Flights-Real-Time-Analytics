@@ -41,7 +41,7 @@ services:
       - NIFI_WEB_PROXY_HOST=localhost
     ports:
       - "8443:8443"
-
+      - "8081:8080"
     volumes:
       - type: volume
         source: conf

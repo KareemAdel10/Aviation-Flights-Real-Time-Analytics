@@ -59,7 +59,7 @@
 ## The Endpoints Used:
 
 1. Flights Endpoint: Use this to populate the Flights Fact Table and link to dimension tables.
-2. Airlines Endpoint: Use this to populate the Airlines Dimension. => 13139
+2. Airlines Endpoint: Use this to populate the Airlines Dimension. => 13140
 3. Airports Endpoint: Use this to populate the Airports Dimension. => 6710
 4. Airplanes Endpoint: Use this to populate the Aircraft Dimension. => 19052
 5. Cities Endpoint: Use this to populate the Cities Dimension. => 9368
