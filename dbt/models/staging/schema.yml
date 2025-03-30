@@ -1,0 +1,186 @@
+version: 2
+
+models:
+  - name: stg_silver__airlines
+    description: "Staging model for airlines data sourced from Silver layer."
+    columns:
+      - name: airline_name
+        description: "Name of the airline."
+      - name: icao_code
+        description: "ICAO airline code."
+      - name: iata_code
+        description: "IATA airline code."
+      - name: iata_prefix_accounting
+        description: "IATA prefix for accounting."
+      - name: callsign
+        description: "Airline callsign."
+      - name: type
+        description: "Type of airline (scheduled, charter, etc.)."
+      - name: status
+        description: "Current status of the airline (active/inactive)."
+      - name: fleet_size
+        description: "Total fleet size of the airline."
+      - name: fleet_average_age
+        description: "Average age of the airline's fleet."
+      - name: date_founded
+        description: "Year the airline was founded."
+      - name: hub_code
+        description: "Hub airport of the airline."
+      - name: country_name
+        description: "Country where the airline is based."
+      - name: country_iso2
+        description: "ISO2 country code of the airline's country."
+
+  - name: stg_silver__airplanes
+    description: "Staging model for airplanes data sourced from Silver layer."
+    columns:
+      - name: registration_number
+        description: "Unique registration number of the aircraft."
+      - name: production_line
+        description: "Production line of the aircraft."
+      - name: iata_type
+        description: "IATA aircraft type."
+      - name: model_name
+        description: "Model name of the aircraft."
+      - name: model_code
+        description: "Model code of the aircraft."
+      - name: icao_code_hex
+        description: "Hexadecimal ICAO aircraft code."
+      - name: iata_code_short
+        description: "Short IATA aircraft code."
+      - name: construction_number
+        description: "Unique construction number of the aircraft."
+      - name: test_registration_number
+        description: "Test registration number of the aircraft (if applicable)."
+      - name: rollout_date
+        description: "Rollout date of the aircraft."
+      - name: first_flight_date
+        description: "Date of the aircraft's first flight."
+      - name: delivery_date
+        description: "Delivery date of the aircraft."
+      - name: registration_date
+        description: "Official registration date of the aircraft."
+      - name: line_number
+        description: "Line number in production."
+      - name: plane_series
+        description: "Series of the aircraft."
+      - name: airline_iata_code
+        description: "IATA code of the airline operating this aircraft."
+      - name: airline_icao_code
+        description: "ICAO code of the airline operating this aircraft."
+      - name: plane_owner
+        description: "Owner of the aircraft."
+      - name: engines_count
+        description: "Number of engines."
+      - name: engines_type
+        description: "Type of engines (Jet, Turboprop, etc.)."
+      - name: plane_age
+        description: "Age of the aircraft."
+      - name: plane_status
+        description: "Operational status of the aircraft."
+      - name: plane_class
+        description: "Class of the aircraft."
+
+  - name: stg_silver__airports
+    description: "Staging model for airports data sourced from Silver layer."
+    columns:
+      - name: airport_name
+        description: "Name of the airport."
+      - name: iata_code
+        description: "IATA code of the airport."
+      - name: icao_code
+        description: "ICAO code of the airport."
+      - name: latitude
+        description: "Latitude coordinate of the airport."
+      - name: longitude
+        description: "Longitude coordinate of the airport."
+      - name: timezone
+        description: "Time zone of the airport."
+      - name: gmt
+        description: "GMT offset of the airport."
+      - name: phone_number
+        description: "Contact phone number for the airport."
+      - name: country_name
+        description: "Country where the airport is located."
+      - name: country_iso2
+        description: "ISO2 country code."
+      - name: city_iata_code
+        description: "IATA city code where the airport is located."
+
+  - name: stg_silver__cities
+    description: "Staging model for cities data sourced from Silver layer."
+    columns:
+      - name: city_name
+        description: "Name of the city."
+      - name: iata_code
+        description: "IATA city code."
+      - name: country_iso2
+        description: "ISO2 country code."
+      - name: latitude
+        description: "Latitude coordinate of the city."
+      - name: longitude
+        description: "Longitude coordinate of the city."
+      - name: timezone
+        description: "Time zone of the city."
+      - name: gmt
+        description: "GMT offset of the city."
+      - name: geoname_id
+        description: "Geoname ID reference."
+
+  - name: stg_silver__countries
+    description: "Staging model for countries data sourced from Silver layer."
+    columns:
+      - name: country_name
+        description: "Country name."
+      - name: country_iso2
+        description: "ISO2 country code."
+      - name: country_iso3
+        description: "ISO3 country code."
+      - name: country_iso_numeric
+        description: "Numeric country code."
+      - name: population
+        description: "Total population of the country."
+      - name: capital
+        description: "Capital city of the country."
+      - name: continent
+        description: "Continent where the country is located."
+      - name: currency_name
+        description: "Name of the currency used in the country."
+      - name: currency_code
+        description: "Currency code (ISO 4217)."
+      - name: fips_code
+        description: "FIPS code of the country."
+      - name: phone_prefix
+        description: "International dialing code of the country."
+
+  - name: stg_silver__flights
+    description: "Staging model for flights data sourced from Silver layer."
+    columns:
+      - name: flight_date
+        description: "Date of the flight."
+      - name: flight_status
+        description: "Current status of the flight (scheduled, active, landed, cancelled)."
+      - name: departure_airport
+        description: "Name of the departure airport."
+      - name: departure_iata
+        description: "IATA code of the departure airport."
+      - name: departure_icao
+        description: "ICAO code of the departure airport."
+      - name: arrival_airport
+        description: "Name of the arrival airport."
+      - name: arrival_iata
+        description: "IATA code of the arrival airport."
+      - name: arrival_icao
+        description: "ICAO code of the arrival airport."
+      - name: airline_name
+        description: "Name of the airline operating the flight."
+      - name: flight_number
+        description: "Flight number."
+      - name: aircraft_registration
+        description: "Registration number of the aircraft."
+      - name: live_latitude
+        description: "Latitude of the aircraft in real time."
+      - name: live_longitude
+        description: "Longitude of the aircraft in real time."
+      - name: live_altitude
+        description: "Altitude of the aircraft in real time."
