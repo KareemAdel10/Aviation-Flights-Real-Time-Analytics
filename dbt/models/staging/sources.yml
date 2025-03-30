@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: silver  # This should match your schema name
+    database: Aviation  # Optional, depends on your warehouse
+    schema: silver  # This is the schema where raw data lives
+    tables:
+      - name: flights  # The table name
+        description: "flights data"
+
+      - name: cities  # The table name
+        description: "cities data"
+
+      - name: countries  # The table name
+        description: "countries data"
+
+      - name: airports  # The table name
+        description: "airports data"
+
+      - name: airplanes  # The table name
+        description: "airplanes data"
+      
+      - name: airlines  # The table name
+        description: "airlines data"
