@@ -20,6 +20,7 @@ SELECT
 
     -- Departure attributes
     departure_icao, -- fk
+    departure_iata,
     departure_terminal,
     departure_gate,
     departure_scheduled,
@@ -28,6 +29,7 @@ SELECT
 
     -- Arrival attributes
     arrival_icao, -- fk
+    arrival_iata,
     arrival_terminal,
     arrival_gate,
     arrival_baggage,
