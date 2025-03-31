@@ -26,37 +26,6 @@ models:
           - unique
           - not_null
 
-      # - name: departure_iata
-      #   tests:
-      #     - relationships:
-      #         to: ref('dim_airports')
-      #         field: iata_code
-      #         config:
-      #           where: "departure_iata != 'N/A'"
-
-      # - name: arrival_iata
-      #   tests:
-      #     - relationships:
-      #         to: ref('dim_airports')
-      #         field: iata_code
-      #         config:
-      #           where: "arrival_iata != 'N/A'"
-
-      # - name: airline_icao
-      #   tests:
-      #     - relationships:
-      #         to: ref('dim_airlines')
-      #         field: icao_code
-      #         config:
-      #           where: "airline_icao != 'N/A'"
-
-      # - name: aircraft_registration
-      #   tests:
-      #     - relationships:
-      #         to: ref('dim_airplanes')
-      #         field: registration_number
-      #         config:
-      #           where: "aircraft_registration != 'N/A'"
 
   - name: dim_airlines
     columns:
