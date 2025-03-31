@@ -6,3 +6,5 @@
 *.lock.hcl
 to-do-list.txt
 error.txt
+.vscode/
+.env

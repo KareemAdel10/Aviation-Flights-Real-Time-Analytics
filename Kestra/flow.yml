@@ -1,0 +1,313 @@
+id: Flights-Flow
+namespace: aviation-real-time-analytics
+
+inputs:
+  - id: flow_type
+    type: SELECT
+    values: [ 'Flights', 'Utility' ]
+    defaults: 'Flights'
+
+variables:
+  export CITIES_ID ?=$(CITIES_ID)
+  export COUNTRIES_ID ?=$(COUNTRIES_ID)
+  export AIRPLANES_ID ?=$(AIRPLANES_ID)
+  export AIRPORTS_ID ?=$(AIRPORTS_ID)
+  export AIRLINES_ID ?=$(AIRLINES_ID)
+  export FLIGHTS_ID ?=$(FLIGHTS_ID)
+
+
+  databricks_token    ?= $(databricks_token)
+  databricks_host     ?= $(databricks_host)
+  databricks_cluster  ?= $(databricks_cluster)
+
+  dbt_repo_url        ?= $(dbt_repo_url)
+  dbt_target          ?= $(dbt_target)
+
+  git_token           ?= $(git_token)
+  git_user            ?= $(git_user)
+
+  synapse_server      ?= $(synapse_server)
+  synapse_database    ?= $(synapse_database)
+  synapse_username    ?= $(synapse_username)
+  synapse_password    ?= $(synapse_password)
+
+tasks:
+  - id: If_Flights
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{inputs.flow_type == 'Flights'}}"
+    then:
+      - id: Ingest_flights
+        type: io.kestra.plugin.scripts.shell.Script
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: atomicaol/customubuntu:latest
+        script: |
+          curl -k -v --resolve localhost:8443:192.168.65.254 \
+          -H "Authorization: Bearer {{vars.token}}" \
+          -H "Content-Type: application/json" \
+          -d '{"id":"{{vars.FLIGHTS_ID}}","state":"RUNNING"}' \
+          -X PUT https://localhost:8443/nifi-api/flow/process-groups/{{vars.FLIGHTS_ID}}
+
+          sleep 400
+
+          curl -k -v --resolve localhost:8443:192.168.65.254 \
+          -H "Authorization: Bearer {{vars.token}}" \
+          -H "Content-Type: application/json" \
+          -d '{"id":"{{vars.FLIGHTS_ID}}","state":"STOPPED"}' \
+          -X PUT https://localhost:8443/nifi-api/flow/process-groups/{{vars.FLIGHTS_ID}}
+        disabled: false
+
+      - id: BronzeToSilver_FactTable
+        type: io.kestra.plugin.databricks.job.SubmitRun
+        authentication:
+          token: "{{vars.databricks_token}}"
+        host: "{{vars.databricks_host}}"
+        runTasks:
+          - existingClusterId: "{{vars.databricks_cluster}}"
+            notebookTask:
+              notebookPath: /Workspace/Users/1900286@el-eng.menofia.edu.eg/BronzeToSilver_FactTable
+            taskKey: BronzeToSilver_FactTable
+        waitForCompletion: PT2M
+        disabled: false
+
+
+      - id: Drop_views
+        type: io.kestra.plugin.scripts.python.Script
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: atomicaol/dbt_synapse_python
+        script: |
+          import pyodbc
+          from azure.identity import DefaultAzureCredential
+
+          # Connection parameters
+          server   = "{{vars.synapse_server}}"
+          database = "{{vars.synapse_database}}"
+          username = "{{vars.synapse_username}}"
+          password = "{{vars.synapse_password}}"
+          driver   = '{ODBC Driver 17 for SQL Server}'
+
+          # Establish connection
+          conn = pyodbc.connect(
+              f'DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}',
+              autocommit=True 
+          )
+          cursor = conn.cursor()
+
+          drop_views = """
+          DROP ViEW gold.dim_airlines;
+          DROP ViEW gold.dim_airports;
+          DROP ViEW gold.dim_airplanes;
+          DROP ViEW gold.dim_cities;
+          DROP ViEW gold.dim_countries;
+          DROP ViEW gold.fact_flights;
+          ---
+          DROP ViEW gold.stg_silver__airlines;
+          DROP ViEW gold.stg_silver__airplanes;
+          DROP ViEW gold.stg_silver__airports;
+          DROP ViEW gold.stg_silver__cities;
+          DROP ViEW gold.stg_silver__countries;
+          DROP ViEW gold.stg_silver__flights;
+          ---
+          DROP ViEW gold.dm_airline_performance;
+          DROP ViEW gold.dm_airport_traffic;    
+          DROP VIEW gold.dm_aircraft_utilization;
+          DROP VIEW gold.dm_air_traffic;
+          """
+          cursor.execute(drop_views)
+          cursor.close()
+          conn.close()
+        disabled: false
+
+
+      - id: build_dbt_project
+        type: io.kestra.plugin.scripts.shell.Script
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: atomicaol/dbt_synapse_python:latest
+
+        script: |
+          DBT_DIR="/workspace/Aviation_project"
+          DBT_PROFILES_DIR="/workspace/.dbt"
+
+          # Ensure dbt profiles directory exists
+          mkdir -p $DBT_PROFILES_DIR
+
+          echo "Creating dbt profiles.yml"
+          cat << EOF > $DBT_PROFILES_DIR/profiles.yml
+          default:
+            target: dev
+            outputs:
+              dev:
+                type: synapse
+                server: "aviation-synapse-ws-ondemand.sql.azuresynapse.net"
+                port: 1433
+                database: "Aviation"
+                authentication: "sql"
+                username: "adminuser"
+                password: "SecureP@ssword123"
+                driver: "ODBC Driver 17 for SQL Server"
+                schema: "gold"
+          EOF
+
+          # Debugging: Check content
+          echo "Contents of profiles.yml:"
+          cat $DBT_PROFILES_DIR/profiles.yml
+
+          # Clone or update the repo
+          if [ -d "$DBT_DIR/.git" ]; then
+              echo "Repo exists. Pulling latest changes..."
+              cd $DBT_DIR
+              git pull origin main
+          else
+              echo "Cloning repo for the first time..."
+              git clone --depth 1 https://{{vars.git_user}}:{{vars.git_token}}@github.com/{{vars.git_user}}/Aviation-Flights-Real-Time-Analytics.git $DBT_DIR
+          fi
+
+          # Navigate to dbt project
+          cd $DBT_DIR/dbt
+
+          # Run dbt
+          dbt deps
+          dbt run --target dev --profiles-dir $DBT_PROFILES_DIR
+        disabled: false
+
+      - id: SynapseToGoldLayer
+        type: io.kestra.plugin.databricks.job.SubmitRun
+        authentication:
+          token: "{{vars.databricks_token}}"
+        host: "{{vars.databricks_host}}"
+        runTasks:
+          - existingClusterId: "{{vars.databricks_cluster}}"
+            notebookTask:
+              notebookPath: /Workspace/Users/1900286@el-eng.menofia.edu.eg/SynapseToGoldLayer
+            taskKey: SynapseToGoldLayer
+        waitForCompletion: PT5M
+        disabled: false
+
+# ----------------------
+# ----------------------
+# ----------------------
+# ----------------------
+
+  - id: If_Utilty
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{inputs.flow_type == 'Utility'}}"
+    then:
+
+      - id: Ingest_cities
+        type: io.kestra.plugin.scripts.shell.Script
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: atomicaol/customubuntu:latest
+        script: |
+          curl -k -v --resolve localhost:8443:192.168.65.254 \
+          -H "Authorization: Bearer {{vars.token}}" \
+          -H "Content-Type: application/json" \
+          -d '{"id":"{{vars.CITIES_ID}}","state":"RUNNING"}' \
+          -X PUT https://localhost:8443/nifi-api/flow/process-groups/{{vars.CITIES_ID}}
+
+          sleep 250
+
+          curl -k -v --resolve localhost:8443:192.168.65.254 \
+          -H "Authorization: Bearer {{vars.token}}" \
+          -H "Content-Type: application/json" \
+          -d '{"id":"{{vars.CITIES_ID}}","state":"STOPPED"}' \
+          -X PUT https://localhost:8443/nifi-api/flow/process-groups/{{vars.CITIES_ID}}
+        disabled: false
+
+      - id: Ingest_countries
+        type: io.kestra.plugin.scripts.shell.Script
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: atomicaol/customubuntu:latest
+        script: |
+          curl -k -v --resolve localhost:8443:192.168.65.254 \
+          -H "Authorization: Bearer {{vars.token}}" \
+          -H "Content-Type: application/json" \
+          -d '{"id":"{{vars.COUNTRIES_ID}}","state":"RUNNING"}' \
+          -X PUT https://localhost:8443/nifi-api/flow/process-groups/{{vars.COUNTRIES_ID}}
+
+          sleep 250
+
+          curl -k -v --resolve localhost:8443:192.168.65.254 \
+          -H "Authorization: Bearer {{vars.token}}" \
+          -H "Content-Type: application/json" \
+          -d '{"id":"{{vars.COUNTRIES_ID}}","state":"STOPPED"}' \
+          -X PUT https://localhost:8443/nifi-api/flow/process-groups/{{vars.COUNTRIES_ID}}
+        disabled: false
+
+      - id: Ingest_airlines
+        type: io.kestra.plugin.scripts.shell.Script
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: atomicaol/customubuntu:latest
+        script: |
+          curl -k -v --resolve localhost:8443:192.168.65.254 \
+          -H "Authorization: Bearer {{vars.token}}" \
+          -H "Content-Type: application/json" \
+          -d '{"id":"{{vars.AIRLINES_ID}}","state":"RUNNING"}' \
+          -X PUT https://localhost:8443/nifi-api/flow/process-groups/{{vars.AIRLINES_ID}}
+
+          sleep 250
+
+          curl -k -v --resolve localhost:8443:192.168.65.254 \
+          -H "Authorization: Bearer {{vars.token}}" \
+          -H "Content-Type: application/json" \
+          -d '{"id":"{{vars.AIRLINES_ID}}","state":"STOPPED"}' \
+          -X PUT https://localhost:8443/nifi-api/flow/process-groups/{{vars.AIRLINES_ID}}
+        disabled: false
+
+      - id: Ingest_airports
+        type: io.kestra.plugin.scripts.shell.Script
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: atomicaol/customubuntu:latest
+        script: |
+          curl -k -v --resolve localhost:8443:192.168.65.254 \
+          -H "Authorization: Bearer {{vars.token}}" \
+          -H "Content-Type: application/json" \
+          -d '{"id":"{{vars.AIRPORTS_ID}}","state":"RUNNING"}' \
+          -X PUT https://localhost:8443/nifi-api/flow/process-groups/{{vars.AIRPORTS_ID}}
+
+          sleep 250
+
+          curl -k -v --resolve localhost:8443:192.168.65.254 \
+          -H "Authorization: Bearer {{vars.token}}" \
+          -H "Content-Type: application/json" \
+          -d '{"id":"{{vars.AIRPORTS_ID}}","state":"STOPPED"}' \
+          -X PUT https://localhost:8443/nifi-api/flow/process-groups/{{vars.AIRPORTS_ID}}
+        disabled: false
+
+      - id: Ingest_airplanes
+        type: io.kestra.plugin.scripts.shell.Script
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: atomicaol/customubuntu:latest
+        script: |
+          curl -k -v --resolve localhost:8443:192.168.65.254 \
+          -H "Authorization: Bearer {{vars.token}}" \
+          -H "Content-Type: application/json" \
+          -d '{"id":"{{vars.AIRPLANES_ID}}","state":"RUNNING"}' \
+          -X PUT https://localhost:8443/nifi-api/flow/process-groups/{{vars.AIRPLANES_ID}}
+
+          sleep 250
+
+          curl -k -v --resolve localhost:8443:192.168.65.254 \
+          -H "Authorization: Bearer {{vars.token}}" \
+          -H "Content-Type: application/json" \
+          -d '{"id":"{{vars.AIRPLANES_ID}}","state":"STOPPED"}' \
+          -X PUT https://localhost:8443/nifi-api/flow/process-groups/{{vars.AIRPLANES_ID}}
+        disabled: false
+
+      - id: BronzeToSilver_UtilityTables
+        type: io.kestra.plugin.databricks.job.SubmitRun
+        authentication:
+          token: "{{vars.databricks_token}}"
+        host: "{{vars.databricks_host}}"
+        runTasks:
+          - existingClusterId: "{{vars.databricks_cluster}}"
+            notebookTask:
+              notebookPath: /Workspace/Users/1900286@el-eng.menofia.edu.eg/BronzeToSilver_UtilityTables
+            taskKey: BronzeToSilver_UtilityTables
+        waitForCompletion: PT5M

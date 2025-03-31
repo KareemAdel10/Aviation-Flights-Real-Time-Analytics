@@ -1,18 +1,20 @@
+include .env
+
 PLATFORM ?= linux/amd64
 
 TARGET_MAX_CHAR_NUM=20
 
 # Define Process Group IDs for NiFi Flows
-CITIES_ID=4d216316-95de-3aa4-fe3f-f6952721a841
-COUNTRIES_ID=708eba99-c9b9-3333-01b7-b124e0f9418e
-AIRPLANES_ID=6e2fe909-bb5a-364c-a796-2861040c9bf7
-AIRPORTS_ID=a2c8710c-6568-3c61-ead6-148196f6e92f
-AIRLINES_ID=6fabbfa9-59e9-386f-821f-829ddcc37d10
-FLIGHTS_ID=a9776459-0195-1000-3fe9-0bf199022bf6
+export CITIES_ID ?=$(CITIES_ID)
+export COUNTRIES_ID ?=$(COUNTRIES_ID)
+export AIRPLANES_ID ?=$(AIRPLANES_ID)
+export AIRPORTS_ID ?=$(AIRPORTS_ID)
+export AIRLINES_ID ?=$(AIRLINES_ID)
+export FLIGHTS_ID ?=$(FLIGHTS_ID)
 
-user=admin
-password=ctsBtRBKHRAx69EqUghvvgEvjnaLjFEB
-token=eyJraWQiOiJhOGM3NzdlZC1hOTQzLTRkMWUtYWJhMy0wZGU4OGY4OTU3OGIiLCJhbGciOiJFZERTQSJ9.eyJzdWIiOiJhZG1pbiIsImF1ZCI6Imh0dHBzOi8vNGViNTk2ZmIyZDlhOjg0NDMiLCJuYmYiOjE3NDMyODA3NjgsImlzcyI6Imh0dHBzOi8vNGViNTk2ZmIyZDlhOjg0NDMiLCJncm91cHMiOltdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbiIsImV4cCI6MTc0MzMwOTU2OCwiaWF0IjoxNzQzMjgwNzY4LCJqdGkiOiI4ZGY1YzI1NC00YTI5LTQzNDgtYWY5Yy02MmZjMzExOGI5OGMifQ.qjIKDOx9jctdD0L9ZC7K2vDiW_X30N7LZlnxZO1rZoWBWCLnhIDNw7L2BZ925oQ0PrSV0iliay13dV-kVr8lCg
+export user ?=$(user)
+export password ?=$(password)
+export token ?=$(token)
 
 ## Show help with make help
 help:
@@ -205,7 +207,13 @@ flights-stop:
 	docker compose exec nifi curl -k -v --resolve localhost:8443:192.168.65.254 -H "Authorization: Bearer $(token)" -H "Content-Type: application/json" -d '{"id":"$(FLIGHTS_ID)","state":"STOPPED"}' -X PUT https://localhost:8443/nifi-api/flow/process-groups/$(FLIGHTS_ID)
 
 # Kestra
-.PHONY: kestra
+.PHONY: kestra-flights
 ## Runs the Kestra workflow
-kestra:
-	docker compose exec kestra /bin/bash -c "kestra executions start --namespace=aviation --flow=aviation-flow"
+kestra-flights:
+	curl -v -X POST -H 'Content-Type: multipart/form-data' -F 'flow_type=Flights' 'http://localhost:8080/api/v1/executions/aviation-real-time-analytics/Flights-Flow'
+
+# Kestra
+.PHONY: kestra-utility
+## Runs the Kestra workflow
+kestra-flights:
+	curl -v -X POST -H 'Content-Type: multipart/form-data' -F 'flow_type=Utility' 'http://localhost:8080/api/v1/executions/aviation-real-time-analytics/Flights-Flow'
