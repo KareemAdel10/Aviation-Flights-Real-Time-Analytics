@@ -8,3 +8,4 @@ to-do-list.txt
 error.txt
 .vscode/
 .env
+main.tf
