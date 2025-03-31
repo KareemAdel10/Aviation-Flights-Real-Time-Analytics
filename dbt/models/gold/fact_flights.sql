@@ -38,11 +38,15 @@ SELECT
     arrival_delay,
 
     -- Airline attributes
-    airline_icao, -- fk
-
+    airline_name,
+    airline_iata,
+    airline_icao,
+    
     -- Aircraft attributes
-    aircraft_registration, -- fk
+    aircraft_registration,
     aircraft_iata,
+    aircraft_icao,
+    aircraft_icao24,
 
     -- Live attributes
     live_longitude,
