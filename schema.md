@@ -1,62 +1,98 @@
 ## Fact Table:
 
-- Flights Fact Table:
-  - Flight ID (Primary Key)
-  - Flight Date
-  - Flight Status
-  - Departure Airport Code (Foreign Key to Airports Dimension)
-  - Arrival Airport Code (Foreign Key to Airports Dimension)
-  - Airline Code (Foreign Key to Airlines Dimension)
-  - Aircraft Registration (Foreign Key to Aircraft Dimension)
-  - Departure Delay
-  - Arrival Delay
-  - Scheduled Departure Time
-  - Actual Departure Time
-  - Scheduled Arrival Time
-  - Actual Arrival Time
+- fact_flights Table:
+  - flight_id (UID)
+  - flight_number
+  - flight_iata
+  - flight_icao
+  - flight_data
+  - flight_status
+  - departure_icao (Foreign Key to Airports Dimension)
+  - departure_iata
+  - departure_terminal
+  - departure_gate
+  - departure_scheduled
+  - departure_actual
+  - departure_delay
+  - arrival_icao (Foreign Key to Airports Dimension)
+  - arrival_iata
+  - arrival_terminal
+  - arrival_gate
+  - arrival_baggage
+  - arrival_scheduled
+  - arrival_actual
+  - arrival_delay
+  - airline_icao (Foreign Key to Airlines Dimension)
+  - aircraft_registration (Foreign Key to Aircraft Dimension)
+  - aircraft_iata
+  - live_longitude
+  - live_altitude
+  - live_is_ground
 
 ## Dimension Tables:
 
-- Airlines Dimension:
-  - Airline Code (Primary Key)
-  - Airline Name
-  - IATA Code
-  - ICAO Code
-  - Country Name
-  - Country ISO2
-- Airports Dimension:
-  - Airport Code (Primary Key)
-  - Airport Name
-  - IATA Code
-  - ICAO Code
-  - Latitude
-  - Longitude
-  - Timezone
-  - Country Name
-  - Country ISO2
-- Airplanes Dimension:
-  - Aircraft Registration (Primary Key)
-  - IATA Type
-  - Model Name
-  - Model Code
-  - Plane Age
-  - Plane Status
+- dim_airports:
+  - airport_id (UID)
+  - airline_name
+  - iata_code
+  - icao_code
+  - latitude
+  - longitude
+  - timezone
+  - country_iso2
+  - country_name
+  - city_iata_code
+- dim_airlines:
+  - airline_id (UID)
+  - airline_name
+  - icao_code
+  - iata_code
+  - iata_prefix_accounting
+  - country_iso2
+  - country_name
+  - callsign
+  - fleet_size
+  - fleet_average_age
+  - date_founded
+  - status
+  - type
+- dim_airplanes:
+  - airplane_id (UID)
+  - registration_number
+  - model_name
+  - model_code
+  - plane_owner
+  - construction_number
+  - production_line
+  - iata_type
+  - first_flight_date
+  - delivery_date
+  - plane_series
+  - engines_count
+  - engines_type
+  - plane_age
+  - plane_status
 - Cities Dimension:
-  - City Code (Primary Key)
-  - City Name
-  - Country ISO2
+  - city_id (UID)
+  - city_name
+  - iata_code
   - Latitude
   - Longitude
   - Timezone
+  - country_iso2
 - Countries Dimension:
-  - Country ISO2 (Primary Key)
-  - Country Name
-  - Country ISO3
-  - Continent
-  - Currency Code
-  - Population
+  - country_id (UID)
+  - country_name
+  - country_ISO2
+  - capital
+  - continent
+  - currency_name
+  - population
+  - phone_prefix
 
-## The Endpoints Used:
+## Used Endpoints:
+
+[AviationStack API Documentation for Historical Flight Data & Tracking](https://aviationstack.com/documentation)
 
 1. Flights Endpoint: Use this to populate the Flights Fact Table and link to dimension tables.
 2. Airlines Endpoint: Use this to populate the Airlines Dimension. => 13140

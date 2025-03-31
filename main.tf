@@ -73,8 +73,8 @@ resource "azurerm_synapse_workspace" "synapse" {
 resource "azurerm_synapse_firewall_rule" "allow_my_ip" {
   name                 = "allow_my_ip"
   synapse_workspace_id = azurerm_synapse_workspace.synapse.id
-  start_ip_address     = "156.198.8.239"
-  end_ip_address       = "156.198.8.239"
+  start_ip_address     = "156.198.127.15"
+  end_ip_address       = "156.198.127.15"
 }
 
 resource "azurerm_synapse_firewall_rule" "allow_dbt_ip" {
@@ -91,6 +91,12 @@ resource "azurerm_synapse_firewall_rule" "allow_dbt_ip2" {
   end_ip_address       = "52.3.77.232"
 }
 
+resource "azurerm_synapse_firewall_rule" "allow_dbt_core_ip" {
+  name                 = "allow_dbt_core_ip"
+  synapse_workspace_id = azurerm_synapse_workspace.synapse.id
+  start_ip_address     = "156.198.16.228"  
+  end_ip_address       = "156.198.16.228"
+}
 
 resource "azurerm_role_assignment" "synapse_storage_access" {
   scope                = azurerm_storage_account.adls.id
@@ -105,12 +111,12 @@ resource "azurerm_databricks_workspace" "dbw" {
   sku                 = "standard"
 }
 
-# resource "databricks_cluster" "databricks_cluster" {
-#   cluster_name                 = "databricks-single-node"
-#   spark_version                = "13.3.x-scala2.12"
-#   node_type_id                 = "Standard_D3_v2"
-#   num_workers                  = 0 
-#   autotermination_minutes      = 10
-#   enable_elastic_disk          = true
-#   enable_local_disk_encryption = true
-# }
+resource "databricks_cluster" "databricks_cluster" {
+  cluster_name                 = "databricks-single-node"
+  spark_version                = "13.3.x-scala2.12"
+  node_type_id                 = "Standard_D3_v2"
+  num_workers                  = 0 
+  autotermination_minutes      = 10
+  enable_elastic_disk          = true
+  enable_local_disk_encryption = true
+}
