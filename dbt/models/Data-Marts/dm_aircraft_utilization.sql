@@ -14,5 +14,4 @@ SELECT
 
 FROM flights f
 JOIN airplanes a ON a.registration_number = f.aircraft_registration
-GROUP BY f.aircraft_registration, a.iata_type
-ORDER BY successful_flights desc, disrupted_flights desc;
+GROUP BY f.aircraft_registration, a.iata_type;
