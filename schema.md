@@ -7,15 +7,15 @@
   - flight_icao
   - flight_data
   - flight_status
-  - departure_icao (Foreign Key to Airports Dimension)
-  - departure_iata
+  - departure_iata (Foreign Key to Airports Dimension)
+  - departure_icao
   - departure_terminal
   - departure_gate
   - departure_scheduled
   - departure_actual
   - departure_delay
-  - arrival_icao (Foreign Key to Airports Dimension)
-  - arrival_iata
+  - arrival_iata (Foreign Key to Airports Dimension)
+  - arrival_icao
   - arrival_terminal
   - arrival_gate
   - arrival_baggage
@@ -23,8 +23,12 @@
   - arrival_actual
   - arrival_delay
   - airline_icao (Foreign Key to Airlines Dimension)
+  - airline_name
+  - airline_icao
   - aircraft_registration (Foreign Key to Aircraft Dimension)
   - aircraft_iata
+  - aircraft_icao
+  - aircraft_icao24
   - live_longitude
   - live_altitude
   - live_is_ground
